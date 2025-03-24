@@ -1,23 +1,16 @@
-# Usar a imagem oficial do Go como build
+# Etapa de build
 FROM golang:alpine AS builder
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar código fonte
 COPY main.go .
 
-# Criar módulo Go
-RUN go mod init fullcycle
+RUN go mod init fullcycle && \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o fullcycle main.go
 
-# Compilar o código Go
-RUN go build -o fullcycle main.go
-
-# Criar imagem mínima usando 'scratch'
+# Imagem final mínima
 FROM scratch
 
-# Copiar binário compilado da etapa anterior
 COPY --from=builder /app/fullcycle /fullcycle
 
-# Definir comando de execução
 CMD ["/fullcycle"]
